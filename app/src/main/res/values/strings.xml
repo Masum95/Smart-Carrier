@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Bluetooth Controller</string>
+    <string name="menu_normal">Normal</string>
+
+    <string-array name="Maps">
+        <item>Map1</item>
+        <item>Map2</item>
+        <item>Map3</item>
+    </string-array>
+</resources>
