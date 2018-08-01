@@ -31,6 +31,10 @@ public class DeviceListActivity extends Activity {
     private BluetoothAdapter mBtAdapter;
     private ArrayAdapter<String> mPairedDevicesArrayAdapter;
 
+    AlertDialog.Builder a_builer;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +42,7 @@ public class DeviceListActivity extends Activity {
 
         textConnectionStatus = (TextView) findViewById(R.id.connecting);
         textConnectionStatus.setTextSize(40);
+        a_builer = new AlertDialog.Builder(this);
         setUpPopMessage();
         // Initialize array adapter for paired devices
         mPairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
@@ -46,17 +51,25 @@ public class DeviceListActivity extends Activity {
         pairedListView = (ListView) findViewById(R.id.paired_devices);
         pairedListView.setAdapter(mPairedDevicesArrayAdapter);
         pairedListView.setOnItemClickListener(mDeviceClickListener);
+
+
     }
 
 
-    private void setUpPopMessage(){
-        AlertDialog.Builder a_builer = new AlertDialog.Builder(this);
-        View dview = getLayoutInflater().inflate(R.layout.custom_alert_tips,null);
+    private void setUpPopMessage() {
+        View dview = getLayoutInflater().inflate(R.layout.custom_alert_tips, null);
         a_builer.setView(dview)
                 .setCancelable(false)
         ;
         final AlertDialog alertDialog = a_builer.create();
-        Button gotItBtn = (Button)dview.findViewById(R.id.gotIt);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                alertDialog.show();
+                alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);  // hide default alert dialog interface by making it transparent
+            }
+        }, 1500);
+        Button gotItBtn = (Button) dview.findViewById(R.id.gotIt);
 
         gotItBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,13 +77,7 @@ public class DeviceListActivity extends Activity {
                 alertDialog.dismiss();
             }
         });
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                alertDialog.show();
-                alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);  // hide default alert dialog interface by making it transparent
-            }
-        },2000);
+
     }
 
 
@@ -118,27 +125,28 @@ public class DeviceListActivity extends Activity {
         }
     }
 
-    private OnItemClickListener mDeviceClickListener = new OnItemClickListener()
-    {
-        public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3)
-        {
+    private OnItemClickListener mDeviceClickListener = new OnItemClickListener() {
+        public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
+
             textConnectionStatus.setText("Connecting...");
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
-            String address = info.substring(info.length() - 17);
-            //////////////////////////////To be Removed ...............
+            final String address = info.substring(info.length() - 17);
+
             try {
                 BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-                 device.createRfcommSocketToServiceRecord( UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+                device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
             } catch (IOException e1) {
                 Toast.makeText(getBaseContext(), "ERROR - Could not create Bluetooth socket", Toast.LENGTH_SHORT).show();
             }
-            ///////////////////////
+
 
             // Make an intent to start next activity while taking an extra which is the MAC address.
             Intent i = new Intent(DeviceListActivity.this, AtmegaMain.class);
             i.putExtra(EXTRA_DEVICE_ADDRESS, address);
             startActivity(i);
+
+
         }
     };
 }

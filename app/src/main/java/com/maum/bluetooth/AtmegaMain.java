@@ -5,7 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
-import android.os.Bundle;
+import android.os.*;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
 
@@ -17,7 +17,7 @@ public class AtmegaMain extends Activity {
 
     private static final String DEBUG = "DEBUG";
     private PaintView paintView;
-    public static double screenWidth,ScreenHeight;
+    public static double screenWidth, ScreenHeight;
 
     private BluetoothAdapter btAdapter = null;
     private BluetoothSocket btSocket = null;
@@ -30,10 +30,12 @@ public class AtmegaMain extends Activity {
     // MAC-address of Bluetooth module
     public String newAddress = null;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_atmega_main);
+
 
         paintView = (PaintView) findViewById(R.id.paintView);
         DisplayMetrics metrics = new DisplayMetrics();
@@ -42,12 +44,49 @@ public class AtmegaMain extends Activity {
         ScreenHeight = metrics.heightPixels;
         screenWidth = metrics.widthPixels;
         float density = getResources().getDisplayMetrics().density;
-//        Log.d("DEBUG", screenWidth + " " + ScreenHeight);
-//        Log.d("DEBUG", screenWidth/density + " " + ScreenHeight/density + "in DP" );
+
 
         paintView.init(metrics);
+
+
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         checkBTState();
+        Intent intent = getIntent();
+        newAddress = intent.getStringExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+
+        // Set up a pointer to the remote device using its address.
+
+        //Attempt to create a bluetooth socket for comms
+        try {
+            BluetoothDevice device = btAdapter.getRemoteDevice(newAddress);
+            btSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
+        } catch (IOException e1) {
+            Toast.makeText(getBaseContext(), "ERROR - Could not create Bluetooth socket", Toast.LENGTH_SHORT).show();
+        }
+
+        // Establish the connection.
+        try {
+            btSocket.connect();
+
+        } catch (IOException e) {
+
+            Toast.makeText(getBaseContext(), "ERROR - Could not close Bluetooth socket", Toast.LENGTH_SHORT).show();
+
+        }
+
+        // Create a data stream so we can talk to the device
+        try {
+            outStream = btSocket.getOutputStream();
+        } catch (IOException e) {
+            Toast.makeText(getBaseContext(), "ERROR - Could not create bluetooth outstream", Toast.LENGTH_SHORT).show();
+        }
+
+
+        cmd = new Command(AtmegaMain.this, outStream);
+        Toast.makeText(getApplicationContext(), "Here we set the value", Toast.LENGTH_LONG).show();
+        paintView.cmd = cmd;
+
+
     }
 
     @Override
@@ -56,6 +95,7 @@ public class AtmegaMain extends Activity {
         // connection methods are best here in case program goes into the background etc
 
         //Get MAC address from DeviceListActivity
+
         Intent intent = getIntent();
         newAddress = intent.getStringExtra(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
 
@@ -73,12 +113,9 @@ public class AtmegaMain extends Activity {
         // Establish the connection.
         try {
             btSocket.connect();
+
         } catch (IOException e) {
-            try {
-                btSocket.close();        //If IO exception occurs attempt to close socket
-            } catch (IOException e2) {
-                Toast.makeText(getBaseContext(), "ERROR - Could not close Bluetooth socket", Toast.LENGTH_SHORT).show();
-            }
+
         }
 
         // Create a data stream so we can talk to the device
@@ -90,9 +127,11 @@ public class AtmegaMain extends Activity {
         //When activity is resumed, attempt to send a piece of junk data ('x') so that it will fail if not connected
         // i.e don't wait for a user to press button to recognise connection failure
         //sendData("x");
-        cmd = new Command(AtmegaMain.this,outStream);
-        Toast.makeText(getApplicationContext(),"Here we set the value",Toast.LENGTH_LONG).show();
+        cmd = new Command(AtmegaMain.this, outStream);
+        Toast.makeText(getApplicationContext(), "Here we set the value", Toast.LENGTH_LONG).show();
         paintView.cmd = cmd;
+
+
     }
 
     @Override
@@ -102,9 +141,14 @@ public class AtmegaMain extends Activity {
         //close all connections so resources are not wasted
 
         //Close BT socket to device
-        try     {
+
+        /************************Error Prone part. Should handle socket closing carefully*********************/
+        try {
+
             btSocket.close();
-        } catch (IOException e2) {
+            Toast.makeText(getBaseContext(), "Closing ...", Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e2) {
             Toast.makeText(getBaseContext(), "ERROR - Failed to close Bluetooth socket", Toast.LENGTH_SHORT).show();
         }
     }
@@ -112,12 +156,12 @@ public class AtmegaMain extends Activity {
     //takes the UUID and creates a comms socket
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
 
-        return  device.createRfcommSocketToServiceRecord(MY_UUID);
+        return device.createRfcommSocketToServiceRecord(MY_UUID);
     }
 
     private void checkBTState() {
         // Check device has Bluetooth and that it is turned on
-        if(btAdapter==null) {
+        if (btAdapter == null) {
             Toast.makeText(getBaseContext(), "ERROR - Device does not support bluetooth", Toast.LENGTH_SHORT).show();
             finish();
         } else {
@@ -129,18 +173,6 @@ public class AtmegaMain extends Activity {
             }
         }
     }
-//    // Method to send data
-//    private void sendData(String message) {
-//        byte[] msgBuffer = message.getBytes();
-//
-//        try {
-//            //attempt to place data on the outstream to the BT device
-//            outStream.write(msgBuffer);
-//        } catch (IOException e) {
-//            //if the sending fails this is most likely because device is no longer there
-//            Toast.makeText(getBaseContext(), "ERROR - Device not found", Toast.LENGTH_SHORT).show();
-//            finish();
-//        }
-//    }
+
 
 }

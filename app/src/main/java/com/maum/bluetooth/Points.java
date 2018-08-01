@@ -21,4 +21,11 @@ public class Points{
     public double dotProduct(Points a){  // position vector point
         return x * a.x + y * a.y;
     }
+
+    @Override
+    public String toString() {
+        return "Points{" +
+                 x + " "+
+                 y ;
+    }
 }

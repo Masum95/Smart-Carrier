@@ -8,18 +8,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Select btSerial device from paired devices:"
+        android:text="Select BTSerial device from paired devices:"
         android:visibility="gone"
-        android:background="#666"
-        android:textColor="#fff"
+        android:background="#4169E1"
+        android:textColor="#ffffff"
         android:paddingLeft="5dp"
         />
-    <ListView android:id="@+id/paired_devices"
+
+    <ListView
+        android:id="@+id/paired_devices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:stackFromBottom="false"
         android:layout_weight="1"
-        />
+        android:background="#87ceeb"
+        android:stackFromBottom="false" />
 
     <TextView
         android:id="@+id/connecting"
@@ -34,11 +36,6 @@
         android:text="If no devices are listed please pair your device in Android settings"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center">
 
-    </LinearLayout>
 
 </LinearLayout>

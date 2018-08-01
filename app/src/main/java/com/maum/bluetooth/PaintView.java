@@ -24,12 +24,13 @@ import java.util.ArrayList;
 public class PaintView extends View {
 
     private Context context;
-    public static int BRUSH_SIZE = 20;
+    public static int BRUSH_SIZE = 11;
     public static final int DEFAULT_COLOR = Color.RED;
     public static final int DEFAULT_BG_COLOR = Color.WHITE;
-    private static final float TOUCH_TOLERANCE = 4;
+    private static final float TOUCH_TOLERANCE = 5;
     private float mX, mY;
     private Path mPath;
+
     private Paint mPaint;
     private ArrayList<FingerPath> paths = new ArrayList<>();
     private int currentColor;
@@ -107,7 +108,7 @@ public class PaintView extends View {
         paint.setColor(Color.RED);
         paint.setStyle(Paint.Style.STROKE);
         // Line width in pixels
-        paint.setStrokeWidth(8);
+        paint.setStrokeWidth(4);
         paint.setAntiAlias(true);
 
         // Set a pixels value to offset the line from canvas edge
@@ -169,17 +170,25 @@ public class PaintView extends View {
         canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
         canvas.restore();
     }
-
+    boolean gotTouch = false;
     private void touchStart(float x, float y) {
-        //Log.d("DEBUG","--in on touchStart");
-        mPath = new Path();
-        FingerPath fp = new FingerPath(currentColor, emboss, blur, strokeWidth, mPath);
-        paths.add(fp);
+        if(!gotTouch){
+            mPath = new Path();
+            FingerPath fp = new FingerPath(currentColor, emboss, blur, strokeWidth, mPath);
+            paths.add(fp);
 
-        mPath.reset();
-        mPath.moveTo(x, y);
-        mX = x;
-        mY = y;
+            mPath.reset();
+            mPath.moveTo(x, y);
+            mX = x;
+            mY = y;
+
+            prevPoint = new Points((int)x,(int)y);
+            curPoint = new Points((int)x,(int)y+1);
+            Command.lineList.add(new StraightLine(prevPoint,curPoint));
+            gotTouch = true;
+        }
+        //Log.d("DEBUG","--in on touchStart");
+
     }
 
     private void touchMove(float x, float y) {
@@ -202,26 +211,12 @@ public class PaintView extends View {
 
     Points prevPoint,curPoint;
     StraightLine prevLine,curLine;
+    int curX,curY;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        float x = event.getX();
+        float x =  event.getX();
         float y = event.getY();
-
-        Log.d("DEBUG","distance is "+new Points(x,y).distanceFrom(curPoint));
-        if(new Points(x,y).distanceFrom(curPoint) >= 0.5)
-        {
-            Command.lineList.add(curLine);
-            prevPoint = curPoint;
-            curPoint = new Points(x,y);
-
-            prevLine = curLine;
-            curLine = new StraightLine(prevPoint,curPoint);
-            // Log.d("DEBUG", prevLine.toString()   );
-            // Log.d("DEBUG", curLine.toString()   );
-            //  Log.d("DEBUG","------Angle is "+Math.toDegrees(prevLine.calcAngleWith(curLine)));
-        }
-
 
 
         Log.d("DEBUG",x + " " + y);
@@ -229,7 +224,6 @@ public class PaintView extends View {
             case MotionEvent.ACTION_DOWN :
                 Log.d("DEBUG","Action Down");
                 touchStart(x, y);
-                Toast.makeText(context,"Touch start",Toast.LENGTH_LONG).show();
                 invalidate();
                 break;
             case MotionEvent.ACTION_MOVE :
@@ -244,7 +238,7 @@ public class PaintView extends View {
 
                 if(cmd==null)
                 {
-                    Toast.makeText(context,"cmd is null",Toast.LENGTH_LONG).show();
+                    Toast.makeText(context,"cmd is null",Toast.LENGTH_SHORT).show();
                 }
 
                 cmd.sendCommand();
@@ -252,6 +246,20 @@ public class PaintView extends View {
                 break;
         }
 
+
+        curX = (int)x;
+        curY = (int)y;
+        Points tmp =  new Points(curX,curY);
+        if(tmp.distanceFrom(curPoint) >= 4.5)
+        {
+
+            prevPoint = curPoint;
+            curPoint = tmp;
+            curLine = new StraightLine(prevPoint,curPoint);
+            Command.lineList.add(curLine);
+            //Toast.makeText(context,curX+" "+curY,Toast.LENGTH_SHORT).show();
+
+        }
         return true;
     }
 }

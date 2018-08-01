@@ -5,8 +5,8 @@ package com.maum.bluetooth;
  */
 public class StraightLine {
 
-    private Points startPoint,endPoint;
-    private Points vector;
+    public Points startPoint,endPoint;
+    public Points vector;
     public double magnitude;
 
     public StraightLine(Points startPoint, Points endPoint) {
@@ -26,15 +26,18 @@ public class StraightLine {
 
     public double calcAngleWith(StraightLine a)
     {
-        double val = vector.dotProduct(a.vector);
-        val /= (magnitude * a.magnitude);
-        if(new Points(-vector.y,vector.x).dotProduct(a.vector)<0) // rotating this vector by 90 degree anticlockWise and then
-                                                                // taking dot product to tell whether "a" vector is in clockWise or anti-clockwise direction
-        {
-            return -Math.acos(val);   // negative if CW
-        }
-        else{
-            return Math.acos(val); // positive if CCW
+        try {
+            double val = vector.dotProduct(a.vector);
+            val /= (magnitude * a.magnitude);
+            if (new Points(-vector.y, vector.x).dotProduct(a.vector) < 0) // rotating this vector by 90 degree anticlockWise and then
+            // taking dot product to tell whether "a" vector is in clockWise or anti-clockwise direction
+            {
+                return  -Math.acos(val);   // negative if CW
+            } else {
+                return  Math.acos(val); // positive if CCW
+            }
+        }catch (Exception ex){
+            return 100;
         }
 
     }
