@@ -120,6 +120,7 @@ void turncommand(uchar cc) //aaaa aaad
 
 void input_processing()
 {
+
     while(1)
     {
     	if(deg_id==80) break;
